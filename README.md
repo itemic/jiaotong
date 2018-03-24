@@ -2,7 +2,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ### How to setup
 
-This makes use of environmental variables, so...
+This makes use of environmental variables, which has been gitignored.
 
 After cloning this, create a file called `.env` and in it add the following:
 
