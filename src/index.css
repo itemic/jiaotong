@@ -7,12 +7,29 @@ body {
   background-color: #F7F4F7;
 }
 
+.main {
+	/*position: absolute;*/
+	/*top: 0;*/
+}
+
 .header {
 	position: absolute;
 	font-size: 4rem;
   margin-top: 0rem;
   margin-bottom: -.5rem;
   font-weight: lighter;
+}
+
+.infobar {
+	background-color: #EA905C;
+	width: 100%;
+	position: inline;
+	font-size: 1.5rem;
+	box-shadow: none;
+	border: none;
+	margin: -0.6rem 0rem 0rem 0rem;
+	padding: 1rem 1rem 1rem 1rem;
+	color: white;
 }
 
 .search {
@@ -64,7 +81,7 @@ body {
 	justify-content: center;
 	align-items: center;
 	color: black;
-	font-size: 1.5rem;
+	font-size: 1.15rem;
 	/*font-weight: lighter*/
 
 }
@@ -82,4 +99,11 @@ body {
 	
 }
 
-
+.selected {
+	transition: 0.25s;
+	background-color: #EA905C;
+	color: white;
+}
+.selected:hover {
+	background: #EA905C;
+}

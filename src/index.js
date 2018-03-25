@@ -3,10 +3,6 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import jsSHA from 'jssha'
 
-function header() {
-	return(<h1 class="header">transit</h1>);
-}
-
 
 function getAuthHeader() {
 	// is this how i'm meant to do it
@@ -16,23 +12,74 @@ function getAuthHeader() {
 	shaObj.setHMACKey(process.env.REACT_APP_KEY, 'TEXT')
 	shaObj.update('x-date: ' + time)
 	var HMAC = shaObj.getHMAC('B64')
-	var auth = 'hmac username=\"' + process.env.REACT_APP_ID + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + HMAC + '\"'
+	var auth = 'hmac username=' + process.env.REACT_APP_ID + ', algorithm=hmac-sha1, headers=x-date, signature=' + HMAC
 
 	return { 'Authorization': "Authorization", 'X-Date': time /*,'Accept-Encoding': 'gzip'*/}
 }
 
-function station(n) {
-	// return(<div><span class="stationName">{n}</span></div>)
-	return(
-		<button class="card">
-			<div class="station-container">
-				{n}
-			</div>
-		</button>
-		)
-}
 
 // TO DO: Allow clicking on buttons to show schedule or something
+
+class StationInfo extends React.Component {
+	constructor(props) {
+		super(props)
+		this.state = {
+			info: ""
+		}
+	}
+
+	componentDidMount() {
+		var top = this;
+		fetch("http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'1011'&$format=JSON", {
+			method: 'get',
+			headers: new Headers({
+				'Authorization': getAuthHeader()
+			})
+		}).then(response => response.json())
+		.then(function(data) {
+			console.log(data)
+			let stns = []
+			
+			
+		
+			// top.setState({stations: stns, searchResults: stns})
+		})
+	}
+
+
+	render() {
+		if (this.props.display) {
+			return null
+		} else {
+			return (<div>Eeep</div>)	
+		}
+		
+	}
+
+
+}
+
+function Station(props) {
+
+	const isEnglish = props.isEnglish
+	const stationDetails = props.station
+	if (isEnglish) {
+		return (<button className={props.isSelected ? "card selected" : "card"} onClick={props.onClick}>
+			<div class="station-container">
+				{stationDetails.StationName.En}
+			</div>
+				
+		</button>)
+	} else {
+		return (<button className={props.isSelected ? "card selected" : "card"}  onClick={props.onClick}>
+			<div class="station-container">
+				{stationDetails.StationName.Zh_tw}
+			</div>
+				
+		</button>)
+	}
+}
+
 
 
 class App extends React.Component {
@@ -42,10 +89,14 @@ class App extends React.Component {
 			searchEntry: "",
 			stations: [],
 			searchResults: [],
-			isEnglish: true
+			isEnglish: true,
+			selected: ""
 		}
 		this.handleChange= this.handleChange.bind(this)
+		this.handleClick = this.handleClick.bind(this)
+		this.renderStation = this.renderStation.bind(this)
 	}
+
 
 	handleChange(e) {
 		this.setState({
@@ -93,10 +144,21 @@ class App extends React.Component {
 	}
 
 
-	handleClick(text) {
-		this.setState({
-			searchEntry: text
-		})	
+	handleClick(obj) {
+		console.log(obj.StationID)
+
+		if (obj.StationID === this.state.selected) {
+			this.setState({
+				selected: ""
+			})
+		} else {
+
+			this.setState({
+			selected: obj.StationID
+		})
+		}
+
+		
 	}
 
 	toggleLanguage() {
@@ -107,26 +169,28 @@ class App extends React.Component {
 		}
 	}
 
-
-
-
-
+	renderStation(obj) {
+		return (
+			<Station key={obj.StationID} 
+			station={obj} 
+			isEnglish={this.state.isEnglish} 
+			onClick={() => this.handleClick(obj)}
+			isSelected={obj.StationID === this.state.selected}
+			/>
+			)
+	}
 
 	render() {
 		return (
-			<div>
-			
-			<input type="text" placeholder="Search..." class="search" onChange={this.handleChange} value={this.state.searchEntry}/>
+			<div class="main">
+			<div class="infobar"><StationInfo key={1011} display={this.state.selected===""}/></div>
+			<input type="text" placeholder="Search..."  className={this.state.selected!=="" ? "search selected": "search"} onChange={this.handleChange} value={this.state.searchEntry}/>
 			<button class="langToggle" onClick={() => this.toggleLanguage()}>
 				{this.state.isEnglish ? "en" : "zh"}
 			</button>
-			{this.state.searchResults.map(stn => {
-				if (this.state.isEnglish) {
-					return (station(stn.StationName.En))
-				} else {
-					return (station(stn.StationName.Zh_tw))
-				}
-			})}
+			{this.state.searchResults.map(
+				(object, i) => this.renderStation(object)
+				)}
 			
 			</div>
 
