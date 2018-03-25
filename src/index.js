@@ -10,6 +10,7 @@ function getAuthHeader() {
 	var shaObj = new jsSHA('SHA-1', 'TEXT')
 	// console.log(process.env.REACT_APP_ID)
 	shaObj.setHMACKey(process.env.REACT_APP_KEY, 'TEXT')
+	console.log(process.env.REACT_APP_KEY)
 	shaObj.update('x-date: ' + time)
 	var HMAC = shaObj.getHMAC('B64')
 	var auth = 'hmac username=' + process.env.REACT_APP_ID + ', algorithm=hmac-sha1, headers=x-date, signature=' + HMAC
@@ -24,13 +25,15 @@ class StationInfo extends React.Component {
 	constructor(props) {
 		super(props)
 		this.state = {
-			info: ""
+			realtime: []
 		}
 	}
 
 	componentDidMount() {
 		var top = this;
-		fetch("http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'1011'&$format=JSON", {
+		let url = "http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'" + this.props.station.StationID+ "'&$format=JSON"
+		console.log(url)
+		fetch(url, {
 			method: 'get',
 			headers: new Headers({
 				'Authorization': getAuthHeader()
@@ -38,20 +41,56 @@ class StationInfo extends React.Component {
 		}).then(response => response.json())
 		.then(function(data) {
 			console.log(data)
-			let stns = []
-			
-			
-		
-			// top.setState({stations: stns, searchResults: stns})
+			let rtb = []
+			for (var rt in data) {
+				rtb.push(data[rt])
+			}
+			top.setState({realtime: rtb})
+		})
+	}
+
+	shouldComponentUpdate(nextProps, nextState) {
+		return this.props.station !== nextProps.station
+		// TODO: MAKE SURE WE DONT KEEP RENDERING!!!! then we can get stuff
+	}
+
+	componentDidUpdate() {
+		var top = this;
+		let url = "http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'" + this.props.station.StationID+ "'&$format=JSON"
+		console.log(url)
+		fetch(url, {
+			method: 'get',
+			headers: new Headers({
+				'Authorization': getAuthHeader()
+			})
+		}).then(response => response.json())
+		.then(function(data) {
+			console.log(data)
+			let rtb = []
+			for (var rt in data) {
+				rtb.push(data[rt])
+			}
+			top.setState({realtime: rtb})
 		})
 	}
 
 
 	render() {
 		if (this.props.display) {
-			return null
+
+			if (this.props.isEnglish) {
+				return (<div class="infobar">
+				<div>This station is called: {this.props.station.StationName.En}</div>
+				</div>)	
+			} else {
+				return (<div class="infobar">
+				<div>Kono eki wa: {this.props.station.StationName.Zh_tw}</div>
+				</div>)	
+			}
+
+
 		} else {
-			return (<div>Eeep</div>)	
+			return null
 		}
 		
 	}
@@ -147,14 +186,14 @@ class App extends React.Component {
 	handleClick(obj) {
 		console.log(obj.StationID)
 
-		if (obj.StationID === this.state.selected) {
+		if (obj.StationID === this.state.selected.StationID) {
 			this.setState({
 				selected: ""
 			})
 		} else {
 
 			this.setState({
-			selected: obj.StationID
+			selected: obj
 		})
 		}
 
@@ -175,7 +214,7 @@ class App extends React.Component {
 			station={obj} 
 			isEnglish={this.state.isEnglish} 
 			onClick={() => this.handleClick(obj)}
-			isSelected={obj.StationID === this.state.selected}
+			isSelected={obj.StationID === this.state.selected.StationID}
 			/>
 			)
 	}
@@ -183,7 +222,7 @@ class App extends React.Component {
 	render() {
 		return (
 			<div class="main">
-			<div class="infobar"><StationInfo key={1011} display={this.state.selected===""}/></div>
+			<StationInfo station={this.state.selected} isEnglish={this.state.isEnglish} display={this.state.selected!==""}/>
 			<input type="text" placeholder="Search..."  className={this.state.selected!=="" ? "search selected": "search"} onChange={this.handleChange} value={this.state.searchEntry}/>
 			<button class="langToggle" onClick={() => this.toggleLanguage()}>
 				{this.state.isEnglish ? "en" : "zh"}
