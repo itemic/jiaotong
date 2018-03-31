@@ -58,7 +58,7 @@ class StationInfo extends React.Component {
 		// TODO: MAKE SURE WE DONT KEEP RENDERING!!!! then we can get stuff
 	}
 
-	componentDidUpdate() {
+	componentWillUpdate() {
 		var top = this;
 		let url = "http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'" + this.props.station.StationID+ "'&$format=JSON"
 		console.log(url)
@@ -69,12 +69,13 @@ class StationInfo extends React.Component {
 			})
 		}).then(response => response.json())
 		.then(function(data) {
-			console.log(data)
 			let rtb = []
 			for (var rt in data) {
 				rtb.push(data[rt])
 			}
 			top.setState({realtime: rtb})
+			console.log("setting states")
+			console.log(top.state.realtime)
 		})
 	}
 
