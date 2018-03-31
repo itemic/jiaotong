@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import jsSHA from 'jssha'
+import moment from 'moment'
 
 
 function getAuthHeader() {
@@ -50,6 +51,9 @@ class StationInfo extends React.Component {
 	}
 
 	shouldComponentUpdate(nextProps, nextState) {
+		console.log("it should")
+		console.log("states equality: " + this.state === nextState)
+		console.log("props equality: " + this.props.station === nextProps.station)
 		return this.props.station !== nextProps.station
 		// TODO: MAKE SURE WE DONT KEEP RENDERING!!!! then we can get stuff
 	}
@@ -74,19 +78,21 @@ class StationInfo extends React.Component {
 		})
 	}
 
+	renderEntry(obj) {
+		return <TimeBlock key={obj.TrainNo} train={obj}/>
+	}
+
 
 	render() {
 		if (this.props.display) {
 
-			if (this.props.isEnglish) {
 				return (<div class="infobar">
-				<div>This station is called: {this.props.station.StationName.En}</div>
+				<div>{this.props.station.StationName.En}
+				{this.state.realtime.map(
+				(object, i) => this.renderEntry(object)
+				)}</div>
 				</div>)	
-			} else {
-				return (<div class="infobar">
-				<div>Kono eki wa: {this.props.station.StationName.Zh_tw}</div>
-				</div>)	
-			}
+			
 
 
 		} else {
@@ -96,6 +102,16 @@ class StationInfo extends React.Component {
 	}
 
 
+}
+
+function TimeBlock(props) {
+	const details = props.train
+	
+	const leaveTime = moment(details.ScheduledDepartureTime, "hh:mm:ss").format("hh:mm")
+	const destinationEn = details.EndingStationName.En
+	const destinationZh_tw = details.EndingStationName.Zh_tw
+	const delay = details.DelayTime
+	return(<div class="time">{destinationEn}<span class="train-time">{leaveTime}</span> <span class="train-delay"> +{delay}</span></div>)
 }
 
 function Station(props) {
