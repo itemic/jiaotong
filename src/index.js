@@ -33,14 +33,17 @@ class StationInfo extends React.Component {
 	componentDidMount() {
 		var top = this;
 		let url = "http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'" + this.props.station.StationID+ "'&$format=JSON"
+		console.log("cDM")
 		console.log(url)
 		fetch(url, {
 			method: 'get',
 			headers: new Headers({
-				'Authorization': getAuthHeader()
+				'Authorization': getAuthHeader(),
+				'Access-Control-Allow-Origin': "*"
 			})
 		}).then(response => response.json())
 		.then(function(data) {
+			console.log("data...")
 			console.log(data)
 			let rtb = []
 			for (var rt in data) {
@@ -50,34 +53,38 @@ class StationInfo extends React.Component {
 		})
 	}
 
-	shouldComponentUpdate(nextProps, nextState) {
-		console.log("it should")
-		console.log("states equality: " + this.state === nextState)
-		console.log("props equality: " + this.props.station === nextProps.station)
-		return this.props.station !== nextProps.station
-		// TODO: MAKE SURE WE DONT KEEP RENDERING!!!! then we can get stuff
-	}
+	// shouldComponentUpdate(nextProps, nextState) {
+	// 	console.log("it should")
+	// 	console.log("states equality: " + this.state === nextState)
+	// 	console.log("props equality: " + this.props.station === nextProps.station)
 
-	componentWillUpdate() {
-		var top = this;
-		let url = "http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'" + this.props.station.StationID+ "'&$format=JSON"
-		console.log(url)
-		fetch(url, {
-			method: 'get',
-			headers: new Headers({
-				'Authorization': getAuthHeader()
-			})
-		}).then(response => response.json())
-		.then(function(data) {
-			let rtb = []
-			for (var rt in data) {
-				rtb.push(data[rt])
-			}
-			top.setState({realtime: rtb})
-			console.log("setting states")
-			console.log(top.state.realtime)
-		})
-	}
+	// 	console.log("this station: ")
+	// 	console.log(this.props.station)
+	// 	console.log(nextProps.station)
+	// 	return this.props.station !== nextProps.station
+	// 	// TODO: MAKE SURE WE DONT KEEP RENDERING!!!! then we can get stuff
+	// }
+
+	// componentWillUpdate() {
+	// 	var top = this;
+	// 	let url = "http://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$filter=StationID%20eq%20'" + this.props.station.StationID+ "'&$format=JSON"
+	// 	console.log(url)
+	// 	fetch(url, {
+	// 		method: 'get',
+	// 		headers: new Headers({
+	// 			'Authorization': getAuthHeader()
+	// 		})
+	// 	}).then(response => response.json())
+	// 	.then(function(data) {
+	// 		let rtb = []
+	// 		for (var rt in data) {
+	// 			rtb.push(data[rt])
+	// 		}
+	// 		top.setState({realtime: rtb})
+	// 		console.log("setting states")
+	// 		console.log(top.state.realtime)
+	// 	})
+	// }
 
 	renderEntry(obj) {
 		return <TimeBlock key={obj.TrainNo} train={obj}/>
@@ -205,7 +212,7 @@ class App extends React.Component {
 
 		if (obj.StationID === this.state.selected.StationID) {
 			this.setState({
-				selected: ""
+				selected: obj
 			})
 		} else {
 
@@ -238,10 +245,10 @@ class App extends React.Component {
 
 	render() {
 		return (
-			<div class="main">
+			<div className="main">
 			<StationInfo station={this.state.selected} isEnglish={this.state.isEnglish} display={this.state.selected!==""}/>
 			<input type="text" placeholder="Search..."  className={this.state.selected!=="" ? "search selected": "search"} onChange={this.handleChange} value={this.state.searchEntry}/>
-			<button class="langToggle" onClick={() => this.toggleLanguage()}>
+			<button className="langToggle" onClick={() => this.toggleLanguage()}>
 				{this.state.isEnglish ? "en" : "zh"}
 			</button>
 			{this.state.searchResults.map(
